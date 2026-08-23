@@ -96,3 +96,93 @@ export const webSearchTool: AgentTool<WebSearchArgs> = {
     }
   },
 };
+
+interface GetWeatherArgs {
+  location?: string;
+}
+
+export const getWeatherTool: AgentTool<GetWeatherArgs> = {
+  definition: {
+    type: "function",
+    function: {
+      name: "get_weather",
+      description:
+        "Gets the current weather and today's forecast for a location. If no location is provided, use Bekasi, West Java, Indonesia.",
+      parameters: {
+        type: "object",
+        properties: {
+          location: {
+            type: "string",
+            description:
+              "The city, town, or other location to get weather for. Defaults to Bekasi, West Java, Indonesia.",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+
+  handler: async ({ location = "Bekasi, West Java, Indonesia" }) => {
+    try {
+      const geocodeResponse = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+          location,
+        )}&count=1&language=en&format=json`,
+      );
+
+      if (!geocodeResponse.ok) {
+        throw new Error("Failed to find location");
+      }
+
+      const geocode = await geocodeResponse.json();
+      const place = geocode.results?.[0];
+
+      if (!place) {
+        return {
+          error: `Could not find a location matching "${location}".`,
+        };
+      }
+
+      const weatherResponse = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto&forecast_days=1`,
+      );
+
+      if (!weatherResponse.ok) {
+        throw new Error("Failed to fetch weather");
+      }
+
+      const weather = await weatherResponse.json();
+
+      return {
+        location: {
+          name: place.name,
+          country: place.country,
+          latitude: place.latitude,
+          longitude: place.longitude,
+          timezone: weather.timezone,
+        },
+        current: {
+          temperature: weather.current.temperature_2m,
+          apparentTemperature: weather.current.apparent_temperature,
+          humidity: weather.current.relative_humidity_2m,
+          precipitation: weather.current.precipitation,
+          windSpeed: weather.current.wind_speed_10m,
+          weatherCode: weather.current.weather_code,
+          isDay: weather.current.is_day === 1,
+        },
+        today: {
+          high: weather.daily.temperature_2m_max[0],
+          low: weather.daily.temperature_2m_min[0],
+          precipitationProbability:
+            weather.daily.precipitation_probability_max[0],
+          sunrise: weather.daily.sunrise[0],
+          sunset: weather.daily.sunset[0],
+        },
+      };
+    } catch (error: any) {
+      return {
+        error: `Weather lookup failed: ${error?.message || "Unknown error"}`,
+      };
+    }
+  },
+};
