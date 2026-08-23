@@ -1,6 +1,7 @@
 // tools/timeTool.ts
 import { AgentTool } from "../types";
 import { tavily } from "@tavily/core";
+import { getLocalSystemStatus } from "../../libs/system/system-status";
 
 export const getSystemTimeTool: AgentTool = {
   definition: {
@@ -182,6 +183,36 @@ export const getWeatherTool: AgentTool<GetWeatherArgs> = {
     } catch (error: any) {
       return {
         error: `Weather lookup failed: ${error?.message || "Unknown error"}`,
+      };
+    }
+  },
+};
+
+interface SystemStatusArgs {}
+
+export const getSystemStatusTool: AgentTool<SystemStatusArgs> = {
+  definition: {
+    type: "function",
+    function: {
+      name: "get_system_status",
+      description:
+        "Gets the current status of the machine running Edwin, including CPU usage, CPU temperature when available, memory usage, disk usage, operating system information, load average, and system uptime.",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: [],
+      },
+    },
+  },
+
+  handler: async () => {
+    try {
+      return await getLocalSystemStatus();
+    } catch (error: any) {
+      return {
+        error: `Failed to get system status: ${
+          error?.message || "Unknown error"
+        }`,
       };
     }
   },

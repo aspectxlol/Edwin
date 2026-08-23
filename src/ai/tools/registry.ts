@@ -6,6 +6,7 @@ import {
   calculateTool,
   webSearchTool,
   getWeatherTool,
+  getSystemStatusTool,
 } from "./generalTools";
 import {
   createOrderTool,
@@ -21,6 +22,7 @@ export const toolsRegistry: ToolRegistry = {
   calculate: calculateTool,
   web_search: webSearchTool,
   get_weather: getWeatherTool,
+  get_system_status: getSystemStatusTool,
 
   create_order: createOrderTool,
   get_order: getOrderTool,
