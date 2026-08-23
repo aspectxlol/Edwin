@@ -1,0 +1,2 @@
+patchedDependencies:
+  whatsapp-rust-bridge: patches/whatsapp-rust-bridge.patch
