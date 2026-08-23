@@ -18,7 +18,7 @@ import {
 } from "./orderTools";
 
 export const toolsRegistry: ToolRegistry = {
-  getSystemTime: getSystemTimeTool,
+  get_system_time: getSystemTimeTool,
   calculate: calculateTool,
   web_search: webSearchTool,
   get_weather: getWeatherTool,

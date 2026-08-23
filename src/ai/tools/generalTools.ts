@@ -8,12 +8,26 @@ export const getSystemTimeTool: AgentTool = {
     type: "function",
     function: {
       name: "getSystemTime",
-      description: "Gets the current system date and time ISO string.",
-      parameters: { type: "object", properties: {} },
+      description:
+        "Gets the current local date and time in a human-readable format. Use this whenever the user asks for the current time or date.",
+      parameters: {
+        type: "object",
+        properties: {},
+      },
     },
   },
+
   handler: async () => {
-    return { isoString: new Date().toISOString() };
+    const now = new Date();
+
+    return {
+      dateTime: new Intl.DateTimeFormat("en-ID", {
+        dateStyle: "full",
+        timeStyle: "short",
+        timeZone: "Asia/Jakarta",
+      }).format(now),
+      timezone: "Asia/Jakarta",
+    };
   },
 };
 
