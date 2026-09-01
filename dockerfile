@@ -17,6 +17,7 @@ RUN pnpm install --frozen-lockfile
 # Build TypeScript -> dist/
 COPY tsconfig.json drizzle.config.ts ./
 COPY src ./src
+COPY drizzle ./drizzle
 RUN pnpm build
 
 # Prune to production dependencies for the runtime layer.
