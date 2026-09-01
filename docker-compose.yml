@@ -4,7 +4,6 @@ services:
       context: .
       # File is lowercase "dockerfile" — keep in sync on case-sensitive FS.
       dockerfile: dockerfile
-    image: edwin:latest
     container_name: edwin
     restart: unless-stopped
 
