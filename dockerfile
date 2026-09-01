@@ -41,6 +41,7 @@ RUN addgroup -S edwin && adduser -S edwin -G edwin
 COPY --from=builder --chown=edwin:edwin /app/node_modules ./node_modules
 COPY --from=builder --chown=edwin:edwin /app/dist ./dist
 COPY --from=builder --chown=edwin:edwin /app/drizzle ./drizzle
+COPY --from=builder --chown=edwin:edwin /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder --chown=edwin:edwin /app/package.json ./
 
 # Baileys auth session — MUST be a persistent volume or you re-scan the
@@ -53,4 +54,4 @@ USER edwin
 EXPOSE 3000
 
 # Apply DB migrations, then start the bot.
-CMD ["sh", "-c", "node node_modules/drizzle-kit/bin.cjs migrate && node dist/index.js"]
+CMD ["sh", "-c", "node node_modules/drizzle-kit/bin.cjs migrate --config=drizzle.config.ts && node dist/index.js"]
