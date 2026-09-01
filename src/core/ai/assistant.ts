@@ -5,8 +5,10 @@ import { systemPrompt } from "./prompt";
 import { toolDefinitions, toolsRegistry } from "./tools/registry";
 
 import { Message } from "../database/schema";
+import { ToolContext } from "./types";
+import { logger } from "../libs/logger";
 
-export async function runAssistant(history: Message[]) {
+export async function runAssistant(history: Message[], context: ToolContext) {
   const messages: OpenAI.ChatCompletionMessageParam[] = [
     {
       role: "system",
@@ -86,10 +88,10 @@ export async function runAssistant(history: Message[]) {
           continue;
         }
 
-        console.log(`[Agent Action] ${toolName}`, args);
+        logger.agent(`tool call → ${toolName} ${JSON.stringify(args)}`);
 
         try {
-          toolOutput = await targetTool.handler(args);
+          toolOutput = await targetTool.handler(args, context);
         } catch (error) {
           toolOutput = {
             error:

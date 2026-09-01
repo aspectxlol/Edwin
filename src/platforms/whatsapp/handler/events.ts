@@ -1,13 +1,16 @@
 import { WASocket, WAMessage } from "@whiskeysockets/baileys";
 import NodeCache from "node-cache";
-import {
-  handleGroupParticipantsUpdate,
-  handleGroupsUpdate,
-} from "./handler/groups";
-import { handleMessage } from "./handler/messages";
-import { handleConnectionUpdate } from "./handler/connection";
+import { logger } from "../../../core/libs/logger";
+import { handleGroupParticipantsUpdate, handleGroupsUpdate } from "./groups";
+import { handleMessage } from "./messages";
+import { handleConnectionUpdate } from "./connection";
+import { WhatsAppMessagingPort } from "../port";
 
-export function registerWhatsAppEvents(sock: WASocket, groupCache: NodeCache) {
+export function registerWhatsAppEvents(
+  port: WhatsAppMessagingPort,
+  sock: WASocket,
+  groupCache: NodeCache,
+) {
   sock.ev.on("connection.update", async (update) => {
     await handleConnectionUpdate(sock, update, groupCache);
   });
@@ -23,9 +26,9 @@ export function registerWhatsAppEvents(sock: WASocket, groupCache: NodeCache) {
   sock.ev.on("messages.upsert", async ({ messages, type }) => {
     for (const message of messages) {
       try {
-        await handleMessage(sock, message, type);
+        await handleMessage(port, message, type);
       } catch (error) {
-        console.error("[WhatsApp] Failed processing message:", error);
+        logger.error(`Failed processing message: ${error}`);
       }
     }
   });

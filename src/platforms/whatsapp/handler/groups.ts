@@ -1,5 +1,6 @@
 import { WASocket } from "@whiskeysockets/baileys";
 import NodeCache from "node-cache";
+import { logger } from "../../../core/libs/logger";
 
 export async function handleGroupsUpdate(
   sock: WASocket,
@@ -12,7 +13,7 @@ export async function handleGroupsUpdate(
 
       groupCache.set(event.id, metadata);
     } catch (error) {
-      console.error("Failed to update group metadata:", error);
+      logger.error(`Failed to update group metadata: ${error}`);
     }
   }
 }
@@ -27,6 +28,6 @@ export async function handleGroupParticipantsUpdate(
 
     groupCache.set(event.id, metadata);
   } catch (error) {
-    console.error("Failed to update group participants:", error);
+    logger.error(`Failed to update group participants: ${error}`);
   }
 }

@@ -7,7 +7,7 @@ export const getSystemTimeTool: AgentTool = {
   definition: {
     type: "function",
     function: {
-      name: "getSystemTime",
+      name: "get_system_time",
       description:
         "Gets the current local date and time in a human-readable format. Use this whenever the user asks for the current time or date.",
       parameters: {

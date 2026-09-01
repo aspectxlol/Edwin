@@ -1,6 +1,7 @@
 import { WASocket } from "@whiskeysockets/baileys";
 import NodeCache from "node-cache";
 import qrcode from "qrcode-terminal";
+import { logger } from "../../../core/libs/logger";
 
 export async function handleConnectionUpdate(
   sock: WASocket,
@@ -20,13 +21,14 @@ export async function handleConnectionUpdate(
   }
 
   if (connection === "open") {
-    console.log("Connected to WhatsApp");
+    logger.success(`Connected to WhatsApp as ${sock.user?.name ?? "unknown"}`);
 
     await sock.sendPresenceUpdate("available");
   }
 
   if (connection === "close") {
-    console.log("WhatsApp connection closed");
-    console.log(lastDisconnect);
+    logger.warn(
+      `WhatsApp connection closed: ${JSON.stringify(lastDisconnect)}`,
+    );
   }
 }

@@ -6,8 +6,8 @@ export const aiClient = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   defaultHeaders: {
     "HTTP-Referer": "https://localhost:3000",
-    "X-Title": "Elora",
+    "X-Title": "Edwin",
   },
 });
 
-export const MODEL = "ibm-granite/granite-4.1-8b";
+export const MODEL = "deepseek/deepseek-v4-flash-vision-exp";

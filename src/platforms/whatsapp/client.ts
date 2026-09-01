@@ -4,14 +4,15 @@ import makeWASocket, {
   WASocket,
 } from "@whiskeysockets/baileys";
 import NodeCache from "node-cache";
-import qrcode from "qrcode-terminal";
 import pino from "pino";
 
-import { registerWhatsAppEvents } from "./events";
+import { registerWhatsAppEvents } from "./handler/events";
+import { WhatsAppMessagingPort } from "./port";
 
 export interface WhatsAppClient {
   sock: WASocket;
   groupCache: NodeCache;
+  port: WhatsAppMessagingPort;
 }
 
 export async function createWhatsAppClient(): Promise<WhatsAppClient> {
@@ -37,16 +38,13 @@ export async function createWhatsAppClient(): Promise<WhatsAppClient> {
 
   sock.ev.on("creds.update", saveCreds);
 
-  registerWhatsAppEvents(sock, groupCache);
+  const port = new WhatsAppMessagingPort(sock, groupCache);
+
+  registerWhatsAppEvents(port, sock, groupCache);
 
   return {
     sock,
     groupCache,
+    port,
   };
-}
-
-export async function startWhatsApp() {
-  const client = await createWhatsAppClient();
-
-  return client;
 }

@@ -6,6 +6,7 @@ import {
   timestamp,
   varchar,
   pgEnum,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const roles = pgEnum("roles", ["human", "assistant", "system"]);
@@ -32,10 +33,37 @@ export const notesTable = pgTable("notes", {
 
   content: text().notNull(),
 
+  // WhatsApp JID of the person who created the note.
+  recipientId: varchar({ length: 255 }),
+
+  // Chat JID where the note was created. Notes are only visible in this chat.
+  conversationId: varchar({ length: 255 }),
+
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 
   metadata: jsonb(),
+});
+
+export const remindersTable = pgTable("reminders", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+
+  content: text().notNull(),
+
+  // When the reminder should fire. Null = unscheduled (no specific time yet).
+  remindAt: timestamp({ withTimezone: true }),
+
+  // Whether the reminder has been delivered to the user.
+  completed: boolean().notNull().default(false),
+
+  // WhatsApp JID of the person the reminder is for.
+  recipientId: varchar({ length: 255 }),
+
+  // Chat JID where the reminder was created (where it should be delivered).
+  conversationId: varchar({ length: 255 }),
+
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
 
 export type Message = typeof messagesTable.$inferSelect;
@@ -43,6 +71,9 @@ export type NewMessage = typeof messagesTable.$inferInsert;
 
 export type Note = typeof notesTable.$inferSelect;
 export type NewNote = typeof notesTable.$inferInsert;
+
+export type Reminder = typeof remindersTable.$inferSelect;
+export type NewReminder = typeof remindersTable.$inferInsert;
 
 export const orderTypeEnum = pgEnum("order_type", ["onsite", "delivery"]);
 
