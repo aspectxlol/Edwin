@@ -2,13 +2,19 @@ services:
   edwin:
     build:
       context: .
-      dockerfile: Dockerfile
+      # File is lowercase "dockerfile" — keep in sync on case-sensitive FS.
+      dockerfile: dockerfile
+    image: edwin:latest
     container_name: edwin
     restart: unless-stopped
 
+    # tini is in the image; init: true is a belt-and-braces fallback.
+    init: true
+
     environment:
-      NODE_ENV: ${NODE_ENV}
-      DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: production
+      TZ: ${TZ:-Asia/Jakarta}
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       TAVILY_API_KEY: ${TAVILY_API_KEY}
 
@@ -17,10 +23,32 @@ services:
         condition: service_healthy
 
     volumes:
+      # Baileys session — persists the WhatsApp login across deploys.
+      - edwin-auth:/app/auth
       - edwin-data:/app/data
 
+    healthcheck:
+      # The bot is a WhatsApp client, not a server; verify the process
+      # is alive and the Node event loop is responsive.
+      test: ["CMD", "node", "-e", "process.stdout.write('ok'); process.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # No ports exposed: the bot is a pure outbound WebSocket client.
+    # Uncomment if you later add a web dashboard / webhook receiver.
+    # ports:
+    #   - "3000:3000"
+
   postgres:
-    image: postgres:18
+    image: postgres:18-alpine
     container_name: edwin-postgres
     restart: unless-stopped
 
@@ -30,14 +58,27 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
 
     volumes:
-      - postgres-data:/var/lib/postgresql
+      - postgres-data:/var/lib/postgresql/data
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # DB is only reachable from inside the compose network.
+    # Uncomment to inspect from the host with psql/gui tools.
+    # ports:
+    #   - "5432:5432"
 
 volumes:
+  edwin-auth:
   edwin-data:
   postgres-data:
