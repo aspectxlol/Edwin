@@ -57,6 +57,7 @@ interface PrintOrderArgs {
 }
 
 export const createOrderTool: AgentTool<CreateOrderArgs> = {
+  permissionKey: "tools.order.create",
   definition: {
     type: "function",
     function: {
@@ -137,6 +138,7 @@ export const createOrderTool: AgentTool<CreateOrderArgs> = {
 };
 
 export const getOrderTool: AgentTool<GetOrderArgs> = {
+  permissionKey: "tools.order.read",
   definition: {
     type: "function",
     function: {
@@ -171,6 +173,7 @@ export const getOrderTool: AgentTool<GetOrderArgs> = {
 };
 
 export const getOrdersTool: AgentTool<GetOrdersArgs> = {
+  permissionKey: "tools.order.read",
   definition: {
     type: "function",
     function: {
@@ -198,6 +201,7 @@ export const getOrdersTool: AgentTool<GetOrdersArgs> = {
 };
 
 export const updateOrderTool: AgentTool<UpdateOrderArgs> = {
+  permissionKey: "tools.order.update",
   definition: {
     type: "function",
     function: {
@@ -250,6 +254,7 @@ export const updateOrderTool: AgentTool<UpdateOrderArgs> = {
 };
 
 export const deleteOrderTool: AgentTool<DeleteOrderArgs> = {
+  permissionKey: "tools.order.delete",
   definition: {
     type: "function",
     function: {
@@ -285,6 +290,7 @@ export const deleteOrderTool: AgentTool<DeleteOrderArgs> = {
 };
 
 export const referencePriceTool: AgentTool<ReferencePriceArgs> = {
+  permissionKey: "tools.order.price",
   definition: {
     type: "function",
     function: {

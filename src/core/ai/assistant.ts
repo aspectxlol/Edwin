@@ -7,6 +7,7 @@ import { toolDefinitions, toolsRegistry } from "./tools/registry";
 import { Message } from "../database/schema";
 import { ToolContext } from "./types";
 import { logger } from "../libs/logger";
+import { executeAgentTool } from "../security/executeAgentTool";
 
 export async function runAssistant(history: Message[], context: ToolContext) {
   const messages: OpenAI.ChatCompletionMessageParam[] = [
@@ -61,44 +62,31 @@ export async function runAssistant(history: Message[], context: ToolContext) {
       }
 
       const toolName = toolCall.function.name;
-      const targetTool = toolsRegistry[toolName];
 
-      let toolOutput: unknown;
+      let args: unknown;
 
-      if (!targetTool) {
-        toolOutput = {
-          error: `Tool '${toolName}' is not available.`,
-        };
-      } else {
-        let args: unknown;
+      try {
+        args = JSON.parse(toolCall.function.arguments || "{}");
+      } catch {
+        messages.push({
+          role: "tool",
+          tool_call_id: toolCall.id,
+          content: JSON.stringify({ error: "Invalid tool arguments." }),
+        });
 
-        try {
-          args = JSON.parse(toolCall.function.arguments || "{}");
-        } catch {
-          toolOutput = {
-            error: "Invalid tool arguments.",
-          };
-
-          messages.push({
-            role: "tool",
-            tool_call_id: toolCall.id,
-            content: JSON.stringify(toolOutput),
-          });
-
-          continue;
-        }
-
-        logger.agent(`tool call → ${toolName} ${JSON.stringify(args)}`);
-
-        try {
-          toolOutput = await targetTool.handler(args, context);
-        } catch (error) {
-          toolOutput = {
-            error:
-              error instanceof Error ? error.message : "Tool execution failed.",
-          };
-        }
+        continue;
       }
+
+      logger.agent(`tool call → ${toolName} ${JSON.stringify(args)}`);
+
+      // ACL-guarded execution: resolves the tool, checks the inline
+      // permissionKey against sender/group permissions, then runs it.
+      const toolOutput = await executeAgentTool(
+        toolsRegistry,
+        toolName,
+        args,
+        context,
+      );
 
       messages.push({
         role: "tool",

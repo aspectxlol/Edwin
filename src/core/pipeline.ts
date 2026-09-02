@@ -146,7 +146,10 @@ export async function handleIncomingMessage(
   const response = await runAssistant(history, {
     senderId: incoming.senderId,
     senderName: incoming.senderName,
+    senderPermissions: {},
     conversationId: incoming.conversationId,
+    isGroup: isGroup,
+    groupPermissions: {},
   });
 
   if (!response) {

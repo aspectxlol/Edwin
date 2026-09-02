@@ -1,6 +1,8 @@
 import { WAMessage, WASocket } from "@whiskeysockets/baileys";
 import { runAssistant } from "../../../core/ai/assistant";
 import { decideGroupResponse } from "../../../core/ai/groupDecision";
+import type { PermissionMap } from "../../../core/ai/types";
+import { isToolAllowed } from "../../../core/security/acl.evaluator";
 import {
   getMessageByExternalId,
   getRecentMessages,
@@ -15,6 +17,8 @@ import {
 } from "../../../core/libs/logger";
 import { applyMentions } from "../mentions";
 import { WhatsAppMessagingPort } from "../port";
+import { getOrCreateUser } from "../../../core/database/repositories/users.repository";
+import { getOrCreateGroup } from "../../../core/database/repositories/groups.repository";
 
 function isGroup(jid: string) {
   return jid.endsWith("@g.us");
@@ -195,6 +199,31 @@ export async function handleMessage(
 
   const chatName = await getChatName(sock, jid);
 
+  // Lazily register the sender and the group, loading their permission
+  // maps for the ACL system. Bot's own messages don't need this.
+  let senderPermissions: PermissionMap = {};
+  let groupPermissions: PermissionMap = {};
+
+  if (!message.key.fromMe) {
+    try {
+      const user = await getOrCreateUser(senderId, {
+        displayName: sender,
+        platform: "whatsapp",
+      });
+
+      senderPermissions = (user.permissions as PermissionMap) ?? {};
+
+      if (isGroup(jid)) {
+        const group = await getOrCreateGroup(jid, { name: chatName });
+
+        groupPermissions = (group.permissions as PermissionMap) ?? {};
+      }
+    } catch (error) {
+      // Registration/permission failures must never block message handling.
+      logger.warn(`User/group registration failed: ${error}`);
+    }
+  }
+
   // The bot's own messages arrive here as an "append" echo after being
   // sent (they're persisted above for history). Don't log them as IN —
   // they were already logged as OUT when sent.
@@ -225,6 +254,32 @@ export async function handleMessage(
 
   if (!edwinJid) {
     logger.warn("Edwin JID unavailable");
+    return;
+  }
+
+  // Reply permission gate: unknown/random senders (empty permission maps)
+  // are denied by default, so random people pinging the bot get silence.
+  // Owners/users/groups with "chat.reply": "allow" (or a wildcard) get
+  // normal behavior. Uses the same additive-union rules as tools.
+  const replyAuth = isToolAllowed(
+    "chat.reply",
+    {
+      senderId,
+      senderName: sender,
+      senderPermissions,
+      conversationId: jid,
+      isGroup: isGroup(jid),
+      groupPermissions,
+    },
+    // Default for users/groups with NO matching entry at all: allow.
+    // Explicitly set "chat.reply": "deny" (or "*": "deny") to silence.
+    "allow",
+  );
+
+  if (!replyAuth.allowed) {
+    logger.info(
+      `Reply denied for ${sender} (${shortJid(senderId)}) in "${chatName}": ${replyAuth.reason}`,
+    );
     return;
   }
 
@@ -293,7 +348,10 @@ export async function handleMessage(
     const response = await runAssistant(history, {
       senderId,
       senderName: sender,
+      senderPermissions,
       conversationId: jid,
+      isGroup: isGroup(jid),
+      groupPermissions,
     });
 
     if (!response) {

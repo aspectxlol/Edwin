@@ -13,6 +13,7 @@ interface CreateReminderArgs {
 }
 
 export const createReminderTool: AgentTool<CreateReminderArgs> = {
+  permissionKey: "tools.reminders.create",
   definition: {
     type: "function",
     function: {
@@ -72,6 +73,7 @@ interface ListRemindersArgs {
 }
 
 export const listRemindersTool: AgentTool<ListRemindersArgs> = {
+  permissionKey: "tools.reminders.read",
   definition: {
     type: "function",
     function: {
@@ -118,6 +120,7 @@ interface UpdateReminderArgs {
 }
 
 export const updateReminderTool: AgentTool<UpdateReminderArgs> = {
+  permissionKey: "tools.reminders.update",
   definition: {
     type: "function",
     function: {
@@ -201,6 +204,7 @@ interface DeleteReminderArgs {
 }
 
 export const deleteReminderTool: AgentTool<DeleteReminderArgs> = {
+  permissionKey: "tools.reminders.delete",
   definition: {
     type: "function",
     function: {

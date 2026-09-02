@@ -8,6 +8,7 @@ interface SaveNoteArgs {
 }
 
 export const saveNoteTool: AgentTool<SaveNoteArgs> = {
+  permissionKey: "tools.notes.save",
   definition: {
     type: "function",
     function: {
@@ -49,6 +50,7 @@ interface SearchNotesArgs {
 }
 
 export const searchNotesTool: AgentTool<SearchNotesArgs> = {
+  permissionKey: "tools.notes.search",
   definition: {
     type: "function",
     function: {
@@ -99,6 +101,7 @@ interface DeleteNoteArgs {
 }
 
 export const deleteNoteTool: AgentTool<DeleteNoteArgs> = {
+  permissionKey: "tools.notes.delete",
   definition: {
     type: "function",
     function: {

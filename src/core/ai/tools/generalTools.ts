@@ -4,6 +4,7 @@ import { tavily } from "@tavily/core";
 import { getLocalSystemStatus } from "../../libs/system/system-status";
 
 export const getSystemTimeTool: AgentTool = {
+  permissionKey: "tools.system.time",
   definition: {
     type: "function",
     function: {
@@ -34,6 +35,7 @@ export const getSystemTimeTool: AgentTool = {
 // tools/calculatorTool.ts
 
 export const calculateTool: AgentTool<{ expression: string }> = {
+  permissionKey: "tools.system.calculate",
   definition: {
     type: "function",
     function: {
@@ -69,6 +71,7 @@ interface WebSearchArgs {
 }
 
 export const webSearchTool: AgentTool<WebSearchArgs> = {
+  permissionKey: "tools.system.search",
   definition: {
     type: "function",
     function: {
@@ -117,6 +120,7 @@ interface GetWeatherArgs {
 }
 
 export const getWeatherTool: AgentTool<GetWeatherArgs> = {
+  permissionKey: "tools.system.weather",
   definition: {
     type: "function",
     function: {
@@ -205,6 +209,7 @@ export const getWeatherTool: AgentTool<GetWeatherArgs> = {
 interface SystemStatusArgs {}
 
 export const getSystemStatusTool: AgentTool<SystemStatusArgs> = {
+  permissionKey: "tools.system.status",
   definition: {
     type: "function",
     function: {

@@ -165,7 +165,10 @@ async function deliverViaAI(
     response = await runAssistant([...history, trigger], {
       senderId: reminder.recipientId ?? "unknown",
       senderName: recipientName ?? "Reminder",
+      senderPermissions: {},
       conversationId: reminder.conversationId!,
+      isGroup: port.isGroup(reminder.conversationId!),
+      groupPermissions: {},
     });
   } catch (error) {
     logger.error(`AI delivery failed for reminder #${reminder.id}: ${error}`);
