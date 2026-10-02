@@ -23,24 +23,45 @@ export async function createWhatsAppClient(): Promise<WhatsAppClient> {
     useClones: false,
   });
 
-  const sock = makeWASocket({
-    auth: state,
-    browser: Browsers.ubuntu("Chrome"),
+  let sock!: WASocket;
+  let reconnecting = false;
 
-    cachedGroupMetadata: async (jid) => {
-      return groupCache.get(jid);
-    },
+  let port!: WhatsAppMessagingPort;
 
-    logger: pino({
-      level: "silent",
-    }),
-  });
+  const connect = async () => {
+    sock = makeWASocket({
+      auth: state,
+      browser: Browsers.ubuntu("Chrome"),
 
-  sock.ev.on("creds.update", saveCreds);
+      cachedGroupMetadata: async (jid) => {
+        return groupCache.get(jid);
+      },
 
-  const port = new WhatsAppMessagingPort(sock, groupCache);
+      logger: pino({
+        level: "silent",
+      }),
+    });
 
-  registerWhatsAppEvents(port, sock, groupCache);
+    if (port) {
+      port.setSocket(sock);
+    } else {
+      port = new WhatsAppMessagingPort(sock, groupCache);
+    }
+    sock.ev.on("creds.update", saveCreds);
+
+    registerWhatsAppEvents(port, sock, groupCache, async () => {
+      if (reconnecting) return;
+
+      reconnecting = true;
+      try {
+        await connect();
+      } finally {
+        reconnecting = false;
+      }
+    });
+  };
+
+  await connect();
 
   return {
     sock,

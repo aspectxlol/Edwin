@@ -16,6 +16,8 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       TAVILY_API_KEY: ${TAVILY_API_KEY}
+      WEB_PORT: ${WEB_PORT:-3001}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
 
     depends_on:
       postgres:
@@ -41,10 +43,10 @@ services:
         max-size: "10m"
         max-file: "3"
 
-    # No ports exposed: the bot is a pure outbound WebSocket client.
-    # Uncomment if you later add a web dashboard / webhook receiver.
-    # ports:
-    #   - "3000:3000"
+    # Web admin UI. Protect it: set ADMIN_PASSWORD, and keep it off the
+    # public internet (bind to localhost + reverse proxy, or VPN only).
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3001}:3001"
 
   postgres:
     image: postgres:18-alpine

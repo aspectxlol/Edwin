@@ -1,6 +1,7 @@
 import { registerProcessHandlers } from "./core/libs/processHandlers";
 import { logger } from "./core/libs/logger";
 import { startReminderScheduler } from "./core/scheduling/reminderScheduler";
+import { startWebServer } from "./web/server";
 import { createWhatsAppClient } from "./platforms/whatsapp/client";
 import { applyMentions } from "./platforms/whatsapp/mentions";
 import { getRecentMessages } from "./core/database/repositories/messages.repository";
@@ -55,6 +56,8 @@ async function main() {
       return applyMentions(text, nameToJid);
     },
   );
+
+  await startWebServer();
 
   logger.success("Edwin is running");
 }

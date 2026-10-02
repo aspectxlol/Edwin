@@ -14,10 +14,11 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY patches ./patches
 RUN pnpm install --frozen-lockfile
 
-# Build TypeScript -> dist/
+# Build TypeScript -> dist/ and the web SPA -> web/dist
 COPY tsconfig.json drizzle.config.ts ./
 COPY src ./src
 COPY drizzle ./drizzle
+COPY web ./web
 RUN pnpm build
 
 # Prune to production dependencies for the runtime layer.
@@ -40,6 +41,7 @@ RUN addgroup -S edwin && adduser -S edwin -G edwin
 
 COPY --from=builder --chown=edwin:edwin /app/node_modules ./node_modules
 COPY --from=builder --chown=edwin:edwin /app/dist ./dist
+COPY --from=builder --chown=edwin:edwin /app/web/dist ./web/dist
 COPY --from=builder --chown=edwin:edwin /app/drizzle ./drizzle
 COPY --from=builder --chown=edwin:edwin /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder --chown=edwin:edwin /app/package.json ./

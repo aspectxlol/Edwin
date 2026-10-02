@@ -15,9 +15,13 @@ export class WhatsAppMessagingPort implements MessagingPort {
   readonly platform = "whatsapp";
 
   constructor(
-    public readonly sock: WASocket,
+    public sock: WASocket,
     private readonly groupCache: NodeCache,
   ) {}
+
+  setSocket(sock: WASocket) {
+    this.sock = sock;
+  }
 
   isGroup(conversationId: string): boolean {
     return conversationId.endsWith("@g.us");

@@ -11,6 +11,7 @@ export async function handleConnectionUpdate(
     lastDisconnect?: unknown;
   },
   groupCache: NodeCache,
+  onRestartRequired: () => Promise<void>,
 ) {
   const { connection, qr, lastDisconnect } = update;
 
@@ -30,5 +31,15 @@ export async function handleConnectionUpdate(
     logger.warn(
       `WhatsApp connection closed: ${JSON.stringify(lastDisconnect)}`,
     );
+
+    const statusCode = (
+      lastDisconnect as {
+        error?: { output?: { statusCode?: number } };
+      }
+    )?.error?.output?.statusCode;
+
+    if (statusCode === 515) {
+      await onRestartRequired();
+    }
   }
 }

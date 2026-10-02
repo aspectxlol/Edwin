@@ -10,9 +10,10 @@ export function registerWhatsAppEvents(
   port: WhatsAppMessagingPort,
   sock: WASocket,
   groupCache: NodeCache,
+  onRestartRequired: () => Promise<void>,
 ) {
   sock.ev.on("connection.update", async (update) => {
-    await handleConnectionUpdate(sock, update, groupCache);
+    await handleConnectionUpdate(sock, update, groupCache, onRestartRequired);
   });
 
   sock.ev.on("groups.update", async (events) => {
