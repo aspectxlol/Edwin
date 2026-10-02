@@ -44,6 +44,7 @@ COPY --from=builder --chown=edwin:edwin /app/dist ./dist
 COPY --from=builder --chown=edwin:edwin /app/web/dist ./web/dist
 COPY --from=builder --chown=edwin:edwin /app/drizzle ./drizzle
 COPY --from=builder --chown=edwin:edwin /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder --chown=edwin:edwin /app/src/core/database/schema.ts ./src/core/database/schema.ts
 COPY --from=builder --chown=edwin:edwin /app/package.json ./
 
 # Baileys auth session — MUST be a persistent volume or you re-scan the

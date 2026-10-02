@@ -10,4 +10,4 @@ export const aiClient = new OpenAI({
   },
 });
 
-export const MODEL = "deepseek/deepseek-v4-flash-vision-exp";
+export const MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free";

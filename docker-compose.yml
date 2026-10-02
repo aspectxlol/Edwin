@@ -16,12 +16,12 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       TAVILY_API_KEY: ${TAVILY_API_KEY}
-      WEB_PORT: ${WEB_PORT:-3001}
+      WEB_PORT: 3001
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
 
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
     volumes:
       # Baileys session — persists the WhatsApp login across deploys.
@@ -46,7 +46,29 @@ services:
     # Web admin UI. Protect it: set ADMIN_PASSWORD, and keep it off the
     # public internet (bind to localhost + reverse proxy, or VPN only).
     ports:
-      - "127.0.0.1:${WEB_PORT:-3001}:3001"
+      - "127.0.0.1:${EDWIN_WEB_PORT:-8002}:3001"
+
+  migrate:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: edwin-migrate
+    restart: "no"
+
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    command:
+      [
+        "node",
+        "node_modules/drizzle-kit/bin.cjs",
+        "push",
+        "--config=drizzle.config.ts",
+      ]
 
   postgres:
     image: postgres:18-alpine
@@ -77,9 +99,6 @@ services:
         max-file: "3"
 
     # DB is only reachable from inside the compose network.
-    # Uncomment to inspect from the host with psql/gui tools.
-    # ports:
-    #   - "5432:5432"
 
 volumes:
   edwin-auth:
