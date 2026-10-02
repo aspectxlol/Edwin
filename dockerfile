@@ -55,5 +55,5 @@ USER edwin
 
 EXPOSE 3000
 
-# Apply DB migrations, then start the bot.
-CMD ["sh", "-c", "node node_modules/drizzle-kit/bin.cjs migrate --config=drizzle.config.ts && node dist/index.js"]
+# Push the current schema, then start the bot.
+CMD ["sh", "-c", "node node_modules/drizzle-kit/bin.cjs push --config=drizzle.config.ts && node dist/index.js"]
